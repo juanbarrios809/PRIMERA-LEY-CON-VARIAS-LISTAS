@@ -3,28 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Leyes Moderno</title>
+    <title>Ley Dinámica desde Google Sheets</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-light: #f4f7f6;
-            --text-dark: #333;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8f9fa;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            display: flex;
-            color: var(--text-dark);
-        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); }
 
-        /* Índice Lateral */
-        nav.sidebar {
-            width: 250px;
+        /* Sidebar Dinámico */
+        nav#sidebar {
+            width: 280px;
             height: 100vh;
-            background: var(--primary-color);
+            background: var(--primary);
             color: white;
             position: sticky;
             top: 0;
@@ -32,113 +25,128 @@
             overflow-y: auto;
         }
 
-        nav.sidebar h2 { font-size: 1.2rem; border-bottom: 1px solid #555; padding-bottom: 10px; }
-        
-        nav.sidebar ul { list-style: none; padding: 0; }
-        
-        nav.sidebar a {
+        nav#sidebar a {
             color: #bdc3c7;
             text-decoration: none;
             display: block;
-            padding: 10px 0;
-            transition: 0.3s;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #3e4f5f;
         }
 
-        nav.sidebar a:hover { color: white; padding-left: 10px; }
+        nav#sidebar a:hover { color: white; }
 
-        /* Contenido Principal */
-        main {
+        /* Contenedor de la Ley */
+        main#content {
             flex: 1;
             padding: 40px;
-            background: white;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
 
-        .status-badge {
-            background: #e74c3c;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
+        .capitulo-header {
+            background: #eee;
+            padding: 10px 20px;
+            margin: 40px 0 20px 0;
+            border-radius: 5px;
+            color: var(--primary);
         }
 
         article {
-            margin-bottom: 40px;
-            padding: 20px;
-            border-left: 4px solid var(--accent-color);
-            background: var(--bg-light);
+            margin-bottom: 30px;
+            scroll-margin-top: 20px; /* Para que al clickar el índice no tape el título */
         }
 
-        .summary {
-            font-style: italic;
-            color: #666;
-            background: #fff;
-            padding: 10px;
-            border: 1px dashed #ccc;
-            margin-bottom: 15px;
+        .summary-box {
+            background: #eef7fd;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 0.95rem;
+            color: #444;
         }
 
-        h1 { color: var(--primary-color); }
-        h3 { color: var(--accent-color); margin-top: 0; }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            nav.sidebar { width: 100%; height: auto; position: relative; }
-        }
+        .loading { text-align: center; margin-top: 50px; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
+    <nav id="sidebar">
         <h2>Índice</h2>
-        <ul>
-            <li><a href="#cap1">Capítulo I</a></li>
-            <li><a href="#art1">Art. 1: Definiciones</a></li>
-            <li><a href="#art2">Art. 2: Ámbito</a></li>
-            <li><a href="#cap2">Capítulo II</a></li>
-            <li><a href="#art3">Art. 3: Derechos</a></li>
-        </ul>
+        <div id="indice-lista">Cargando...</div>
     </nav>
 
-    <main>
+    <main id="content">
         <header>
-            <span class="status-badge">LEY VIGENTE</span>
-            <h1>Ley de Protección de Datos Digitales</h1>
-            <p><strong>Última reforma:</strong> 12 de octubre de 2023</p>
+            <h1>Cuerpo Legal</h1>
+            <p id="fecha-actualizacion"></p>
         </header>
-
-        <hr>
-
-        <section id="cap1">
-            <h2>Capítulo I: Disposiciones Generales</h2>
-            
-            <article id="art1">
-                <h3>Artículo 1. Definiciones</h3>
-                <div class="summary">
-                    <strong>En resumen:</strong> Este artículo define qué se considera "dato personal" dentro de la ley.
-                </div>
-                <p>Se entenderá por datos personales cualquier información relativa a una persona física identificada o identificable...</p>
-            </article>
-
-            <article id="art2">
-                <h3>Artículo 2. Ámbito de Aplicación</h3>
-                <p>La presente ley se aplicará a todo tratamiento de datos personales realizado en el territorio nacional por empresas públicas o privadas.</p>
-            </article>
-        </section>
-
-        <section id="cap2">
-            <h2 id="cap2">Capítulo II: Derechos del Titular</h2>
-            <article id="art3">
-                <h3>Artículo 3. Derecho de Acceso</h3>
-                <div class="summary">
-                    <strong>En resumen:</strong> Tienes derecho a pedirle a cualquier empresa que te diga qué datos tienen sobre ti.
-                </div>
-                <p>El titular de los datos tendrá derecho a obtener del responsable del tratamiento la confirmación de si se están tratando o no sus datos.</p>
-            </article>
-        </section>
+        <div id="ley-container">
+            <p class="loading">Obteniendo datos de la ley...</p>
+        </div>
     </main>
 
+    <script>
+        // URL de tu Google Sheets en formato CSV
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbTeVPW_y3RyVjkLyxailFMH0WNRy0v16-pFQF6vHZ8LDnhlSJvSbQ7lQDfCgZnyHMQJVHlnYMIH4F/pub?output=csv';
+
+        async function cargarLey() {
+            try {
+                const respuesta = await fetch(csvUrl);
+                const datosTexto = await respuesta.text();
+                
+                // Convertir CSV a Array de Objetos
+                const filas = datosTexto.split('\n').slice(1); // Quitamos la cabecera
+                const leyContainer = document.getElementById('ley-container');
+                const indiceLista = document.getElementById('indice-lista');
+                
+                leyContainer.innerHTML = '';
+                indiceLista.innerHTML = '';
+
+                let ultimoCapitulo = "";
+
+                filas.forEach((fila, index) => {
+                    // Limpieza básica de datos (manejo de comillas en CSV)
+                    const columnas = fila.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (columnas.length < 5) return;
+
+                    const [capitulo, articulo, titulo, resumen, contenido] = columnas.map(c => c.replace(/"/g, '').trim());
+
+                    // Crear encabezado de capítulo si cambia
+                    if (capitulo !== ultimoCapitulo) {
+                        const capId = `cap-${index}`;
+                        leyContainer.innerHTML += `<h2 class="capitulo-header" id="${capId}">${capitulo}</h2>`;
+                        indiceLista.innerHTML += `<strong style="display:block; margin-top:15px; color:#fff">${capitulo}</strong>`;
+                        ultimoCapitulo = capitulo;
+                    }
+
+                    // Crear el artículo
+                    const artId = `art-${articulo.replace(/\s+/g, '')}`;
+                    
+                    // Agregar al contenido principal
+                    leyContainer.innerHTML += `
+                        <article id="${artId}">
+                            <h3>Artículo ${articulo}. ${titulo}</h3>
+                            <div class="summary-box"><strong>En resumen:</strong> ${resumen}</div>
+                            <p>${contenido}</p>
+                        </article>
+                    `;
+
+                    // Agregar al índice lateral
+                    indiceLista.innerHTML += `<a href="#${artId}">Art. ${articulo}</a>`;
+                });
+
+                document.getElementById('fecha-actualizacion').innerText = "Sincronizado con Google Sheets";
+
+            } catch (error) {
+                console.error("Error cargando la ley:", error);
+                document.getElementById('ley-container').innerHTML = "Error al cargar los datos. Verifica que el CSV sea público.";
+            }
+        }
+
+        cargarLey();
+    </script>
 </body>
 </html>
