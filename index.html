@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor de Constitución y Leyes</title>
+    <style>
+        :root { --primary: #1a365d; --accent: #2563eb; --bg: #f0f2f5; --text: #2d3748; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 550px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+        
+        .header { background: var(--primary); color: white; padding: 25px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Selector de Listas */
+        .selector-tabs { display: flex; background: #edf2f7; padding: 5px; gap: 5px; }
+        .tab-btn { flex: 1; border: none; padding: 10px; cursor: pointer; border-radius: 8px; font-weight: 600; color: #4a5568; transition: 0.3s; }
+        .tab-btn.active { background: var(--accent); color: white; }
+
+        .lista-datos { list-style: none; margin: 0; padding: 15px; }
+        .item-btn { width: 100%; padding: 18px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; text-align: left; font-size: 1rem; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s ease; }
+        .item-btn:hover { background: #f8faff; border-color: var(--accent); transform: translateY(-2px); }
+
+        #vista-detalle { display: none; padding: 20px; }
+        .btn-volver { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 25px; }
+        .ficha { background: #f8fafc; border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }
+        .label { display: block; font-size: 0.7rem; color: #718096; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+        .valor { font-size: 1.05rem; color: var(--primary); line-height: 1.6; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="vista-lista">
+            <div class="header"><h1>Consultas Jurídicas</h1></div>
+            
+            <div class="selector-tabs">
+                <button class="tab-btn active" onclick="cambiarFuente('principal', this)">Lista 1</button>
+                <button class="tab-btn" onclick="cambiarFuente('lista2', this)">Lista 2</button>
+                <button class="tab-btn" onclick="cambiarFuente('lista3', this)">Lista 3</button>
+            </div>
+
+            <div id="status" style="padding: 40px; text-align: center; color: #718096;">Cargando base de datos...</div>
+            <ul id="contenedor-lista" class="lista-datos"></ul>
+        </div>
+
+        <div id="vista-detalle">
+            <button class="btn-volver" onclick="regresar()">← VOLVER AL ÍNDICE</button>
+            <div id="contenido-ficha"></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN: Agrega aquí tus URLs de Google Sheets
+        const FUENTES = {
+            principal: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRr8NFZhCq5GALDDC5QzyIGI6DRblNuHItzFP94KY1j9ZExpyfkf6PXMAQgbZxLUtEqakeRcXOqcP0q/pub?output=csv',
+            lista2: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjnaXAs3VUJ6W-dVarTePZWtcv5KQBuvKBm1J2yDDGd7VzfnEQC0hZ4-_5MoLkV0hPsS7mgmzX53DC/pub?output=csv',
+            lista3: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTU78hYBwAIMsjk--_IHvqK99KBklk7vN-dSmjknQXMceXQ_O383QM_sAXXA-c7bfMA-4gv6MpczFHi/pub?output=csv'
+        };
+
+        let DB = [];
+
+        function parseCSV(text) {
+            const result = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i+1];
+                if (char === '"') {
+                    if (inQuotes && next === '"') { cell += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } 
+                else if (char === ',' && !inQuotes) { row.push(cell.trim()); cell = ''; }
+                else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (cell || row.length > 0) {
+                        row.push(cell.trim());
+                        result.push(row);
+                        cell = ''; row = [];
+                    }
+                } 
+                else { cell += char; }
+            }
+            if (row.length > 0 || cell) { row.push(cell.trim()); result.push(row); }
+            return result;
+        }
+
+        async function cargarDatos(url) {
+            const status = document.getElementById('status');
+            const lista = document.getElementById('contenedor-lista');
+            
+            status.style.display = 'block';
+            status.innerText = "Cargando datos...";
+            lista.innerHTML = '';
+
+            try {
+                const res = await fetch(url);
+                const rawData = await res.text();
+                const todasLasFilas = parseCSV(rawData);
+                todasLasFilas.shift(); // Quitar encabezados
+                DB = todasLasFilas.filter(f => f[0] && f[0].length > 0);
+                renderizar(DB);
+                status.style.display = 'none';
+            } catch (e) {
+                status.innerText = "Error al conectar con los datos.";
+            }
+        }
+
+        function cambiarFuente(clave, elemento) {
+            // Cambiar estado visual de los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            elemento.classList.add('active');
+            
+            // Cargar la nueva URL
+            cargarDatos(FUENTES[clave]);
+        }
+
+        function renderizar(datos) {
+            const lista = document.getElementById('contenedor-lista');
+            lista.innerHTML = '';
+            datos.forEach((fila) => {
+                const indexOriginal = DB.indexOf(fila);
+                const li = document.createElement('li');
+                li.innerHTML = `<button class="item-btn" onclick="verDetalle(${indexOriginal})">${fila[0]}</button>`;
+                lista.appendChild(li);
+            });
+        }
+
+        function verDetalle(idx) {
+            const r = DB[idx];
+            const labels = ["Capítulo", "Nombre", "Artículos", "Contenido"];
+            let html = '';
+            for(let i=0; i<4; i++) {
+                if(r[i]) {
+                    html += `<div class="ficha">
+                                <span class="label">${labels[i]}</span>
+                                <div class="valor">${r[i]}</div>
+                             </div>`;
+                }
+            }
+            document.getElementById('contenido-ficha').innerHTML = html;
+            document.getElementById('vista-lista').style.display = 'none';
+            document.getElementById('vista-detalle').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function regresar() {
+            document.getElementById('vista-lista').style.display = 'block';
+            document.getElementById('vista-detalle').style.display = 'none';
+        }
+
+        // Iniciar con la primera lista
+        cargarDatos(FUENTES.principal);
+    </script>
+</body>
+</html>
